@@ -34,9 +34,9 @@ jobs:
       - name: Smoke test Cloudflare API
         run: |
           node --input-type=module -e 'const r=await fetch("https://rh-website-api.rh-website.workers.dev/api"); if(!r.ok) throw new Error("API HTTP "+r.status); const d=await r.json(); if(d.status!=="online") throw new Error("Unexpected API response"); console.log("API online:",d.service,d.version)'
-      - name: Smoke test RH-WEBSITE Worker-hosted frontend
+      - name: Smoke test RH-WEBSITE Worker-hosted frontend and all static assets
         run: |
-          node --input-type=module -e 'const base="https://rh-website-api.rh-website.workers.dev"; const [r,a,c]=await Promise.all([fetch(base+"/"),fetch(base+"/app.js"),fetch(base+"/styles.css")]); if(!r.ok||!a.ok||!c.ok) throw new Error("Website asset HTTP "+[r.status,a.status,c.status].join("/")); const h=await r.text(); if(!h.includes("RH MEDIA")||!h.includes("app.js")) throw new Error("Unexpected RH-WEBSITE document"); console.log("Website and assets online:",r.status,a.status,c.status)'
+          node --input-type=module -e 'const base="https://rh-website-api.rh-website.workers.dev"; const names=["","/app.js","/admin.js","/styles.css","/admin.css","/mobile-nav.js"]; const responses=await Promise.all(names.map(path=>fetch(base+path))); for(let i=0;i<responses.length;i++){if(!responses[i].ok)throw new Error(names[i]+" HTTP "+responses[i].status)} const html=await responses[0].text(),app=await responses[1].text(),admin=await responses[2].text(); if(!html.includes("RH MEDIA")||!html.includes("app.js"))throw new Error("Unexpected RH-WEBSITE document"); if(!app.includes("Главный администратор")||!admin.includes("ГЛАВНЫЙ АДМИН"))throw new Error("Latest owner UI is missing from deployed bundle"); console.log("Website, latest owner UI and assets online:",responses.map(x=>x.status).join("/"))'
       - name: Verify authentication and admin route protection
         run: |
           node --input-type=module -e 'const base="https://rh-website-api.rh-website.workers.dev"; for (const [path,expected] of [["/api/notifications",401],["/api/admin/overview",403],["/api/admin/users",403],["/api/admin/settings",403]]) { const r=await fetch(base+path); const body=await r.json().catch(()=>({})); console.log(path,r.status); if(r.status!==expected) throw new Error(path+" expected HTTP "+expected+" but got "+r.status); }'
