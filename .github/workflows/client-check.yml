@@ -1,14 +1,14 @@
-name: Client syntax check
+name: RH-WEBSITE syntax checks
 
 on:
   push:
     branches: [main]
     paths:
-      - "app.js"
+      - "**.js"
       - ".github/workflows/client-check.yml"
   pull_request:
     paths:
-      - "app.js"
+      - "**.js"
       - ".github/workflows/client-check.yml"
 
 permissions:
@@ -24,5 +24,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Check JavaScript syntax
-        run: node --check app.js
+      - name: Check browser scripts
+        run: node --check app.js && node --check admin.js && node --check mobile-nav.js
+      - name: Check Cloudflare Worker module syntax
+        run: node --input-type=module --check < worker.js
