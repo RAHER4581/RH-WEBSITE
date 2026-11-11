@@ -30,7 +30,7 @@ jobs:
       - name: Check browser scripts
         run: node --check app.js && node --check admin.js && node --check mobile-nav.js
       - name: Check Cloudflare Worker module syntax
-        run: node --input-type=module --check < worker.js
+        run: node --input-type=module --check < worker.js && node scripts/build-worker.mjs && node --input-type=module --check < worker.bundle.js
       - name: Smoke test Cloudflare API
         run: |
           node --input-type=module -e 'const r=await fetch("https://rh-website-api.rh-website.workers.dev/api"); if(!r.ok) throw new Error("API HTTP "+r.status); const d=await r.json(); if(d.status!=="online") throw new Error("Unexpected API response"); console.log("API online:",d.service,d.version)'
