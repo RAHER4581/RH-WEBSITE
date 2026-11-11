@@ -1,13 +1,12 @@
 name = "rh-website-api"
 main = "worker.js"
-compatibility_date = "2026-11-10"
+compatibility_date = "2026-11-11"
 workers_dev = true
 
 [vars]
 ADMIN_USERNAME = "raher"
 
-# Populated after the dedicated RH-WEBSITE D1 database is created.
 [[d1_databases]]
 binding = "DB"
 database_name = "rh-website-db"
-database_id = "PENDING_D1_DATABASE_ID"
+database_id = "35cee40e-f8ab-4e62-9d34-480741c1e247"
