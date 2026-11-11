@@ -31,7 +31,7 @@ async function feed(){
  $("period").value=S.period;$("sort").value=S.sort;
  }catch(e){$("pageContent").innerHTML=empty("Не удалось загрузить ленту",e.message)}
 }
-function singlePost(id){S.demoMode=true;const p=allDemoPosts().find(x=>String(x.id)===String(id));heading("Публикация","Отдельная страница публикации RH");$("pageContent").innerHTML=demoNotice()+(p?'<button class="quiet post-back" data-action="go-feed">← Вернуться в ленту</button>'+postCard(p):empty("Публикация не найдена","Возможно, она была удалена или ссылка устарела."))}
+async function singlePost(id){S.demoMode=false;heading("Публикация","Отдельная страница публикации RH");$("pageContent").innerHTML='<div class="loading">Загружаем публикацию…</div>';try{const d=await api("/api/posts/"+encodeURIComponent(id));$("pageContent").innerHTML='<button class="quiet post-back" data-action="go-feed">← Вернуться в ленту</button>'+postCard(d.post)}catch(e){$("pageContent").innerHTML=empty("Публикация не найдена",e.message)}}
 function modal(title,sub,body,buttons){$("modalRoot").innerHTML='<div class="modal-backdrop" data-action="backdrop"><section class="modal"><h2>'+title+'</h2><p class="modal-sub">'+sub+'</p>'+body+'<div class="modal-actions">'+buttons+'</div></section></div>'}
 function close(){(S.previewUrls||[]).forEach(url=>{try{URL.revokeObjectURL(url)}catch(e){}});S.previewUrls=[];$("modalRoot").innerHTML=""}
 function lightbox(src){$("modalRoot").innerHTML='<div class="lightbox" data-action="close"><button class="lightbox-close" data-action="close">×</button><img src="'+esc(src)+'" alt="Просмотр изображения"></div>'}
