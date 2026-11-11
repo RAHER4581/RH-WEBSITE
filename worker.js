@@ -1,4 +1,4 @@
-const ALLOWED_ORIGIN="https://rh-website-9mb.pages.dev";
+const ALLOWED_ORIGIN="*";
 const SESSION_DAYS=30,ITERATIONS=120000,MAX_FILE=200*1024*1024;
 const headers={"Access-Control-Allow-Origin":ALLOWED_ORIGIN,"Access-Control-Allow-Methods":"GET, POST, PUT, DELETE, OPTIONS","Access-Control-Allow-Headers":"Content-Type, Authorization","Vary":"Origin","Cache-Control":"no-store"};
 function json(data,status=200,extra={}){return new Response(JSON.stringify(data),{status,headers:{...headers,"Content-Type":"application/json; charset=utf-8",...extra}})}
