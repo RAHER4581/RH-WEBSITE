@@ -25,7 +25,7 @@ export default{async fetch(req,env){
  const origin=req.headers.get("Origin")||"";
  if(req.method==="OPTIONS")return new Response(null,{status:204,headers:{...headers,"Access-Control-Max-Age":"86400"}});
  const url=new URL(req.url),path=url.pathname.replace(/\/$/,"");let m;
- if(path==="/"||path==="/api")return json({service:"RH Media API",status:"online",version:"2.0"});
+ if(path==="/api")return json({service:"RH Media API",status:"online",version:"2.1"});if(path==="/"&&!env.ASSETS)return json({service:"RH Media API",status:"online",version:"2.1"});
  if(path.startsWith("/media/")){if(!env.MEDIA)return new Response("Media storage is not configured",{status:503});const key=decodeURIComponent(path.slice(7));const obj=await env.MEDIA.get(key);if(!obj)return new Response("Not found",{status:404});const h=new Headers(headers);h.set("Content-Type",obj.httpMetadata?.contentType||"application/octet-stream");h.set("Cache-Control","public, max-age=31536000, immutable");h.set("Content-Disposition","inline");return new Response(obj.body,{headers:h})}
  if(!env.DB)return json({error:"D1 binding DB is missing."},500);
  try{
@@ -79,6 +79,7 @@ export default{async fetch(req,env){
   if(path==="/api/admin/settings"&&req.method==="POST"){const u=await session(req,env);if(!isOwner(u))return json({error:"Изменять общие настройки может только главный администратор."},403);const b=await readBody(req),allowed=["siteName","description","accentColor","pageBackground","panelColor","registrationOpen","commentsEnabled","uploadLimit"];for(const key of allowed)if(b[key]!==undefined)await env.DB.prepare("INSERT INTO site_settings(setting_key,value_json,updated_at,updated_by) VALUES(?,?,?,?) ON CONFLICT(setting_key) DO UPDATE SET value_json=excluded.value_json,updated_at=excluded.updated_at,updated_by=excluded.updated_by").bind(key,JSON.stringify(b[key]),new Date().toISOString(),u.id).run();await audit(env,u,"Изменены настройки сайта","settings","global");return json({ok:true})}
   if(path==="/api/admin/audit"&&req.method==="GET"){const u=await session(req,env);if(!isStaff(u))return json({error:"Недостаточно прав."},403);const rows=await env.DB.prepare("SELECT a.id,a.action,a.target_type,a.target_id,a.details_json,a.created_at,u.username actor FROM admin_audit a JOIN users u ON u.id=a.actor_id ORDER BY a.created_at DESC LIMIT 300").all();return json({entries:(rows.results||[]).map(x=>({...x,details:JSON.parse(x.details_json||"{}")}))})}
 
+  if(env.ASSETS&&req.method==="GET"&&!path.startsWith("/api/")&&!path.startsWith("/media/"))return env.ASSETS.fetch(req);
   return json({error:"Not found"},404)
  }catch(e){console.error("RH Media Worker:",e?.stack||e);return json({error:"Внутренняя ошибка сервера."},500)}
 }};
